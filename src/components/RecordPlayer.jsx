@@ -11,6 +11,8 @@ export default function RecordPlayer({ ink }) {
   const [duration, setDuration] = useState(0);
   const [songIdx, setSongIdx] = useState(0);
   const howlRef = useRef(null);
+  const autoPlayRef = useRef(false);
+  const initiatedRef = useRef(false);
 
   // ─── tick 定时器（替代 rAF，避免 seek 中断） ─────
   const tickRef = useRef(null);
@@ -90,17 +92,41 @@ export default function RecordPlayer({ ink }) {
         setPlaying(false);
         setProgress(0);
         setCurrentTime(0);
+        autoPlayRef.current = true;
         const nextIdx = (index + 1) % songs.length;
         setSongIdx(nextIdx);
       },
     });
     howlRef.current = howl;
+    // 自动播放（切歌后自动续播）
+    if (autoPlayRef.current) {
+      autoPlayRef.current = false;
+      setTimeout(() => { if (howlRef.current) howlRef.current.play(); }, 100);
+    }
   }
 
   // 切歌
   useEffect(() => {
     loadSong(songIdx);
   }, [songIdx]);
+
+  // 首次点击页面自动开始播放
+  useEffect(() => {
+    if (initiatedRef.current || !songs[0]) return;
+    const handler = () => {
+      initiatedRef.current = true;
+      document.removeEventListener('click', handler);
+      document.removeEventListener('touchstart', handler);
+      autoPlayRef.current = true;
+      loadSong(songIdx);
+    };
+    document.addEventListener('click', handler, { once: true });
+    document.addEventListener('touchstart', handler, { once: true });
+    return () => {
+      document.removeEventListener('click', handler);
+      document.removeEventListener('touchstart', handler);
+    };
+  }, []);
 
   // 清理
   useEffect(() => {
