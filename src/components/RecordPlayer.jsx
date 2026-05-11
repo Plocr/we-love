@@ -101,27 +101,6 @@ export default function RecordPlayer({ ink }) {
     howlRef.current = howl;
   }
 
-  // 首次用户交互 → 自动播放
-  const firstClickRef = useRef(true);
-  useEffect(() => {
-    if (!songs[0]) return;
-    const handler = () => {
-      if (!firstClickRef.current) return;
-      firstClickRef.current = false;
-      document.removeEventListener('click', handler);
-      document.removeEventListener('touchstart', handler);
-      if (!howlRef.current) {
-        loadSong(songIdx, true);
-      }
-    };
-    document.addEventListener('click', handler, { once: true });
-    document.addEventListener('touchstart', handler, { once: true });
-    return () => {
-      document.removeEventListener('click', handler);
-      document.removeEventListener('touchstart', handler);
-    };
-  }, []);
-
   // 首次加载或切歌
   useEffect(() => {
     if (howlRef.current === null) {
@@ -223,7 +202,14 @@ export default function RecordPlayer({ ink }) {
     return (
       <div className="fixed z-50 cursor-pointer"
         style={{ left: pos.x + 232, top: pos.y }}
-        onClick={() => setOpen(true)}>
+        onClick={() => {
+          setOpen(true);
+          if (!howlRef.current && songs[0]) {
+            switchSong(songIdx, true);
+          } else if (howlRef.current && !howlRef.current.playing()) {
+            howlRef.current.play();
+          }
+        }}>
         <svg width="48" height="48" viewBox="0 0 48 48">
           <defs>
             <filter id="rpMini" x="-10%" y="-10%" width="120%" height="120%">
