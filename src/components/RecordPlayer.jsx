@@ -11,8 +11,6 @@ export default function RecordPlayer({ ink }) {
   const [duration, setDuration] = useState(0);
   const [songIdx, setSongIdx] = useState(0);
   const howlRef = useRef(null);
-  const autoPlayRef = useRef(false);
-  const initiatedRef = useRef(false);
 
   // ─── tick 定时器（替代 rAF，避免 seek 中断） ─────
   const tickRef = useRef(null);
@@ -53,7 +51,7 @@ export default function RecordPlayer({ ink }) {
   const [dragOff, setDragOff] = useState({ x: 0, y: 0 });
 
   // ─── Howler ──────────────────────────────
-  function loadSong(index) {
+  function loadSong(index, autoPlay = false) {
     if (howlRef.current) {
       howlRef.current.unload();
       howlRef.current = null;
@@ -72,6 +70,9 @@ export default function RecordPlayer({ ink }) {
       html5: true,
       onload() {
         setDuration(howl.duration());
+        if (autoPlay) {
+          setTimeout(() => { if (howlRef.current) howlRef.current.play(); }, 50);
+        }
       },
       onplay() {
         setPlaying(true);
@@ -92,33 +93,26 @@ export default function RecordPlayer({ ink }) {
         setPlaying(false);
         setProgress(0);
         setCurrentTime(0);
-        autoPlayRef.current = true;
         const nextIdx = (index + 1) % songs.length;
+        loadSong(nextIdx, true);
         setSongIdx(nextIdx);
       },
     });
     howlRef.current = howl;
-    // 自动播放（切歌后自动续播）
-    if (autoPlayRef.current) {
-      autoPlayRef.current = false;
-      setTimeout(() => { if (howlRef.current) howlRef.current.play(); }, 100);
-    }
   }
 
-  // 切歌
+  // 首次用户交互 → 自动播放
+  const firstClickRef = useRef(true);
   useEffect(() => {
-    loadSong(songIdx);
-  }, [songIdx]);
-
-  // 首次点击页面自动开始播放
-  useEffect(() => {
-    if (initiatedRef.current || !songs[0]) return;
+    if (!songs[0]) return;
     const handler = () => {
-      initiatedRef.current = true;
+      if (!firstClickRef.current) return;
+      firstClickRef.current = false;
       document.removeEventListener('click', handler);
       document.removeEventListener('touchstart', handler);
-      autoPlayRef.current = true;
-      loadSong(songIdx);
+      if (!howlRef.current) {
+        loadSong(songIdx, true);
+      }
     };
     document.addEventListener('click', handler, { once: true });
     document.addEventListener('touchstart', handler, { once: true });
@@ -128,10 +122,24 @@ export default function RecordPlayer({ ink }) {
     };
   }, []);
 
+  // 首次加载或切歌
+  useEffect(() => {
+    if (howlRef.current === null) {
+      loadSong(songIdx);
+    }
+  }, [songIdx]);
+
   // 清理
   useEffect(() => {
     return () => { if (howlRef.current) howlRef.current.unload(); stopTick(); };
   }, []);
+
+  function switchSong(newIdx, autoPlay = false) {
+    const song = songs[newIdx];
+    if (!song || !song.src) return;
+    setSongIdx(newIdx);
+    loadSong(newIdx, autoPlay);
+  }
 
   function togglePlay() {
     const howl = howlRef.current;
@@ -141,13 +149,20 @@ export default function RecordPlayer({ ink }) {
   }
 
   function nextSong() {
-    const next = (songIdx + 1) % songs.length;
-    setSongIdx(next);
+    if (howlRef.current?.playing()) {
+      switchSong((songIdx + 1) % songs.length, true);
+    } else {
+      switchSong((songIdx + 1) % songs.length, false);
+    }
   }
 
   function prevSong() {
     const prev = (songIdx - 1 + songs.length) % songs.length;
-    setSongIdx(prev);
+    if (howlRef.current?.playing()) {
+      switchSong(prev, true);
+    } else {
+      switchSong(prev, false);
+    }
   }
 
   // ─── 拖拽 ────────────────────────────────
