@@ -204,9 +204,9 @@ export default function RecordPlayer({ ink }) {
         style={{ left: pos.x + 232, top: pos.y }}
         onClick={() => {
           setOpen(true);
-          if (!howlRef.current && songs[0]) {
-            switchSong(songIdx, true);
-          } else if (howlRef.current && !howlRef.current.playing()) {
+          if (!howlRef.current) {
+            loadSong(0, true);
+          } else if (!howlRef.current.playing()) {
             howlRef.current.play();
           }
         }}>
