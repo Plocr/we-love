@@ -26,28 +26,6 @@ export function rand(min, max) {
   return Math.random() * (max - min) + min;
 }
 
-// 随机整数
-export function randInt(min, max) {
-  return Math.floor(rand(min, max + 1));
-}
-
-// 随机挑选
-export function pick(arr) {
-  return arr[Math.floor(Math.random() * arr.length)];
-}
-
-// Lerp 颜色
-export function lerpColor(a, b, t) {
-  const ah = parseInt(a.replace('#', ''), 16);
-  const bh = parseInt(b.replace('#', ''), 16);
-  const ar = (ah >> 16) & 0xff, ag = (ah >> 8) & 0xff, ab = ah & 0xff;
-  const br = (bh >> 16) & 0xff, bg = (bh >> 8) & 0xff, bb = bh & 0xff;
-  const rr = Math.round(ar + (br - ar) * t);
-  const rg = Math.round(ag + (bg - ag) * t);
-  const rb = Math.round(ab + (bb - ab) * t);
-  return `rgb(${rr},${rg},${rb})`;
-}
-
 // 解析 LRC 歌词
 export function parseLRC(text) {
   if (!text) return [];

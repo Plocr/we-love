@@ -284,45 +284,7 @@ function CoupleFigure({ cx, cy, ink, isNight }) {
       </g>
     </g>
   );
-}function PetAnimal({ cx, cy, angle, radiusX, radiusY, ink, type }) {
-  const rad = angle * Math.PI / 180;
-  const x = cx + Math.cos(rad) * radiusX;
-  const y = cy + Math.sin(rad) * radiusY + 15;
-  const isCat = type === 'cat';
-  const size = isCat ? 1 : 1.3;
-const stopPhase = (t % 10) / 10;
-  const catStop = isCat && stopPhase > 0.05 && stopPhase < 0.15;
-  const dogJump = !isCat && ((t * 2) % 6) < 0.15;
-  const jumpY = dogJump ? -8 : 0;
-  if (catStop) return null;
-
-  return (
-    <g transform={`translate(${x}, ${y + jumpY}) scale(${size})`}>
-      <ellipse cx="0" cy="0" rx="8" ry="5" fill="none" stroke={ink} strokeWidth="1.5" />
-      {isCat ? (
-        <>
-          <circle cx="9" cy="-3" r="5" fill="none" stroke={ink} strokeWidth="1.5" />
-          <polygon points="7,-7 8,-12 10,-6" fill="none" stroke={ink} strokeWidth="1" />
-          <polygon points="11,-7 10,-12 8,-6" fill="none" stroke={ink} strokeWidth="1" />
-        </>
-      ) : (
-        <>
-          <ellipse cx="10" cy="-3" rx="6" ry="5" fill="none" stroke={ink} strokeWidth="1.5" />
-          <ellipse cx="7" cy="-7" rx="3" ry="4" fill="none" stroke={ink} strokeWidth="1" />
-          <ellipse cx="13" cy="-7" rx="3" ry="4" fill="none" stroke={ink} strokeWidth="1" />
-        </>
-      )}
-      {isCat ? (
-        <path d="M-8 0 Q-14 -8 -10 -12" fill="none" stroke={ink} strokeWidth="1.2" strokeLinecap="round" />
-      ) : (
-        <path d="M-8 0 Q-14 6 -10 2" fill="none" stroke={ink} strokeWidth="1.2" strokeLinecap="round" />
-      )}
-      <line x1="-3" y1="5" x2="-4" y2="9" stroke={ink} strokeWidth="1.5" strokeLinecap="round" />
-      <line x1="3" y1="5" x2="4" y2="9" stroke={ink} strokeWidth="1.5" strokeLinecap="round" />
-    </g>
-  );
 }
-
 // ─── 草地 ────────────────────────────────────
 function Grass({ ink, season }) {
   const tufts = useMemo(() =>
